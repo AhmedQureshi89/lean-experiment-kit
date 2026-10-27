@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/dashboard/check_sync.py\"",
+            "timeout": 15,
+            "statusMessage": "Checking the dashboard is in sync"
+          }
+        ]
+      }
+    ]
+  }
+}

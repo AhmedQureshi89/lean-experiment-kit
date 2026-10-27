@@ -1,0 +1,882 @@
+<style>
+#dash-root { --dash-gutter: var(--cds-pad-lg); }
+
+/* The page is four short screens behind a tab strip, not one long scroll.
+   Everything is scoped to .cx so nothing here restyles the dashboard around it. */
+.cx { max-width: 880px; margin-inline: auto; font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; line-height: 1.5; }
+.cx *, .cx *::before, .cx *::after { box-sizing: border-box; }
+
+/* ---- type scale ---- */
+.cx h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; line-height: 1.2; }
+.cx h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; line-height: 1.3; }
+.cx h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; line-height: 1.35; }
+.cx p { margin: 0; }
+.cx .cx-eyebrow { font-size: var(--cds-font-size-caption); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--color-fg-muted); }
+.cx .cx-cap { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; }
+.cx .cx-note { font-size: var(--cds-font-size-caption); line-height: 1.55; }
+.cx .cx-prose { font-size: var(--cds-font-size-body); line-height: 1.6; max-width: 62ch; }
+.cx .cx-muted { color: var(--color-fg-muted); }
+.cx .cx-num { font-family: var(--font-anthropic-serif); font-weight: 400; line-height: 1; }
+.cx .cx-num-xl { font-size: calc(var(--cds-font-size-title) * 1.9); }
+.cx .cx-num-lg { font-size: calc(var(--cds-font-size-title) * 1.25); }
+.cx .cx-num-md { font-size: var(--cds-font-size-title); }
+.cx .cx-num-sm { font-size: var(--cds-font-size-heading); }
+.cx b, .cx strong { font-weight: 600; }
+
+/* ---- header and tabs ---- */
+.cx .cx-top { display: grid; gap: var(--cds-gap-xs); padding-bottom: var(--cds-pad-md); }
+.cx .cx-state { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); line-height: 1.45; }
+.cx .cx-state b { color: var(--color-fg); }
+.cx .cx-tabs { position: sticky; top: 0; z-index: 3; display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none;
+  margin-bottom: var(--cds-gap-lg); padding: var(--cds-pad-xs) 0; background: var(--color-bg); border-bottom: 1px solid var(--color-border-line); }
+.cx .cx-tabs::-webkit-scrollbar { display: none; }
+.cx .cx-tab { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: .45em; padding: .5em .95em; border: 0; border-radius: var(--cds-radius);
+  background: none; color: var(--color-fg-muted); font: inherit; font-size: var(--cds-font-size-body); cursor: pointer; white-space: nowrap; }
+.cx .cx-tab:hover { background: var(--color-panel); color: var(--color-fg); }
+.cx .cx-tab[aria-selected=true] { background: var(--color-panel); color: var(--color-fg); font-weight: 600; box-shadow: inset 0 0 0 1px var(--color-border-line); }
+.cx .cx-tab .cx-n { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: 400; }
+.cx .cx-panel { display: grid; gap: var(--cds-gap-xl); }
+.cx .cx-panel[hidden] { display: none; }
+
+/* ---- sections and cards ---- */
+.cx section { display: grid; gap: var(--cds-gap-md); scroll-margin-top: 4rem; }
+.cx .cx-shead { display: grid; gap: .15rem; }
+.cx .cx-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); min-width: 0; }
+.cx .cx-card.cx-quiet { background: none; }
+.cx .cx-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: var(--cds-gap-md); }
+.cx .cx-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: var(--cds-gap-md); }
+.cx .cx-stack { display: grid; gap: var(--cds-gap-md); }
+.cx .cx-duo { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cds-gap-md); }
+/* the counts behind a read: as many tiles as fit across, wrapping on a phone */
+.cx .cx-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.5rem, 1fr)); gap: var(--cds-gap-md) var(--cds-gap-sm); }
+.cx .cx-score { display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .6rem; }
+.cx .cx-sep { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); }
+
+/* ---- chips, pills, meters ---- */
+.cx .cx-id { display: inline-block; min-width: 3.2em; text-align: center; padding: .05em .45em; border-radius: 4px;
+  border: 1px solid var(--color-border-line); background: var(--color-bg); font-size: var(--cds-font-size-caption); font-weight: 600; letter-spacing: .02em; }
+.cx .cx-pill { display: inline-flex; align-items: center; gap: .45em; padding: .1em .65em; border-radius: 999px; border: 1px solid var(--color-border-line);
+  font-size: var(--cds-font-size-caption); font-weight: 600; letter-spacing: .03em; white-space: nowrap; }
+.cx .cx-pill::before { content: ""; width: .45em; height: .45em; border-radius: 50%; background: currentColor; flex: none; }
+.cx .st-planned { color: var(--color-fg-muted); border-style: dashed; }
+.cx .st-running { color: var(--color-fg); box-shadow: inset 0 0 0 1px var(--color-border-line); }
+.cx .st-hold { color: var(--color-warn); }
+.cx .st-done { color: var(--color-fg-muted); }
+.cx .dc-persevere { color: var(--color-ok); }
+.cx .dc-pivot { color: var(--color-warn); }
+.cx .dc-kill { color: var(--color-bad); }
+.cx .cx-tag { display: inline-block; padding: .05em .5em; border-radius: 4px; font-size: var(--cds-font-size-caption); font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase; border: 1px solid currentColor; }
+.cx .tg-seen, .cx .tg-live { color: var(--color-ok); }
+.cx .tg-signal { color: var(--color-warn); }
+.cx .tg-gap { color: var(--color-bad); }
+.cx .tg-assumption, .cx .tg-untested { color: var(--color-fg-muted); }
+/* a 0–3 dot meter: the number stays as text beside it, so the cell still reads as its data */
+.cx .cx-dots { display: inline-flex; gap: .18em; vertical-align: middle; margin-right: .4em; }
+.cx .cx-dots i { width: .42em; height: .42em; border-radius: 50%; border: 1px solid var(--color-fg-muted); }
+.cx .cx-dots i.on { background: var(--color-fg); border-color: var(--color-fg); }
+.cx .cx-dots.warn i { border-color: var(--color-warn); }
+
+/* ---- the window meter on a running experiment ---- */
+.cx .cx-meter { display: grid; gap: .35rem; }
+.cx .cx-track { position: relative; height: .6rem; border-radius: 999px; background: var(--color-bg); border: 1px solid var(--color-border-line); overflow: hidden; }
+.cx .cx-track > i { display: block; height: 100%; background: var(--color-fg); border-radius: 999px; }
+.cx .cx-track > u { position: absolute; inset-block: 0; width: 2px; background: var(--color-fg-muted); text-decoration: none; }
+.cx .cx-ends { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+
+/* ---- a labelled fact: label above, value below, never run together ---- */
+.cx .cx-ob { display: grid; grid-template-columns: auto 1fr; gap: .55rem; align-items: start; line-height: 1.45; }
+.cx .cx-t { font-weight: var(--cds-font-weight-medium); line-height: 1.35; }
+.cx .cx-facts { display: grid; gap: var(--cds-gap-sm); }
+.cx .cx-fact { display: grid; gap: .12rem; }
+.cx .cx-fact > span:first-child { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .04em; text-transform: uppercase; }
+.cx .cx-fact > span + span { font-size: var(--cds-font-size-body); line-height: 1.5; }
+.cx .cx-quote { border-left: 2px solid var(--color-border-line); padding-left: .75em; }
+
+/* ---- board ---- */
+.cx .cx-board { display: grid; gap: var(--cds-gap-sm); }
+.cx .cx-item { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); overflow: hidden; }
+.cx .cx-row { display: grid; grid-template-columns: auto 1fr auto; gap: .35rem .75rem; align-items: start; width: 100%;
+  padding: var(--cds-pad-md) var(--cds-pad-lg); border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cx .cx-row:hover { background: var(--color-bg); }
+.cx .cx-row .cx-t { font-size: var(--cds-font-size-body); }
+.cx .cx-row .cx-pills { display: flex; flex-wrap: wrap; gap: .35rem; justify-content: flex-end; }
+.cx .cx-row .cx-outcome { grid-column: 2 / -1; display: grid; gap: .2rem; margin-top: .15rem; }
+.cx .cx-row .cx-ob { font-size: var(--cds-font-size-caption); }
+.cx .cx-row .cx-ob > span:first-child { color: var(--color-fg-muted); white-space: nowrap; }
+.cx table.cx-rows tr:focus-visible td { background: var(--color-bg); outline: 2px solid var(--color-fg); outline-offset: -2px; }
+.cx .cx-met { font-weight: 600; }
+.cx .cx-met.yes { color: var(--color-ok); } .cx .cx-met.no { color: var(--color-bad); }
+.cx .cx-det { display: grid; gap: var(--cds-gap-md); padding: var(--cds-pad-md) var(--cds-pad-lg) var(--cds-pad-lg); border-top: 1px solid var(--color-border-line); background: var(--color-bg); }
+.cx .cx-dl { display: grid; gap: var(--cds-gap-sm); margin: 0; }
+.cx .cx-dl > div { display: grid; gap: .1rem; }
+.cx .cx-dl dt { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .04em; text-transform: uppercase; }
+.cx .cx-dl dd { margin: 0; min-width: 0; font-size: var(--cds-font-size-body); line-height: 1.5; }
+.cx .cx-links { display: flex; flex-wrap: wrap; gap: .5rem; }
+.cx .cx-btn { display: inline-block; padding: .35em .85em; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius);
+  background: var(--color-panel); color: var(--color-fg); font: inherit; font-size: var(--cds-font-size-caption); text-decoration: none; cursor: pointer; }
+.cx .cx-btn:hover { background: var(--color-bg); }
+.cx .cx-btn[aria-pressed=true] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+
+/* ---- the card text, read as a document ---- */
+.cx .cx-md { min-width: 0; overflow-wrap: anywhere; font-size: var(--cds-font-size-body); line-height: 1.65; max-width: 68ch;
+  padding: var(--cds-pad-lg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); display: grid; gap: .85em; }
+.cx .cx-md .cx-h { font-weight: 600; font-size: var(--cds-font-size-heading); margin-top: .5em; }
+.cx .cx-md ul { margin: 0; padding-left: 1.3em; } .cx .cx-md li + li { margin-top: .35em; }
+.cx .cx-md .cx-q { border-left: 2px solid var(--color-border-line); padding-left: .8em; color: var(--color-fg-muted); }
+.cx .cx-md table { border-collapse: collapse; display: block; overflow-x: auto; font-size: var(--cds-font-size-caption); }
+.cx .cx-md th, .cx .cx-md td { border: 1px solid var(--color-border-line); padding: .35em .6em; text-align: left; vertical-align: top; }
+
+/* ---- charts ---- */
+.cx .cx-chart { position: relative; min-width: 0; }
+.cx .cx-chart svg { display: block; overflow: visible; }
+.cx .cx-tip { position: absolute; z-index: 4; pointer-events: none; max-width: 17rem; background: var(--cds-surface-popover);
+  border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover);
+  padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); line-height: 1.45; }
+.cx .cx-tip .cx-tt { color: var(--color-fg-muted); }
+
+/* ---- the assumptions map ---- */
+.cx .cx-map { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); gap: 4px; }
+.cx .cx-ax { display: grid; place-items: center; padding: 2px; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); text-align: center; line-height: 1.25; }
+.cx .cx-ax.y { writing-mode: vertical-rl; transform: rotate(180deg); }
+.cx .cx-cell { min-height: 60px; padding: 5px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius);
+  background: var(--color-panel); display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; }
+.cx .cx-cell.first { border-color: var(--color-fg); box-shadow: inset 0 0 0 1px var(--color-fg); }
+.cx .cx-cell.known { background: var(--color-bg); }
+.cx .cx-bx { display: inline-block; padding: .1em .45em; border-radius: 4px; border: 1px solid var(--color-border-line); background: var(--color-bg);
+  color: inherit; font: inherit; font-size: var(--cds-font-size-caption); font-weight: 600; cursor: pointer; }
+.cx .cx-bx:hover { border-color: var(--color-fg); }
+.cx .cx-bx.customer { border-color: var(--color-fg-muted); border-style: dashed; }
+.cx .cx-bx.testing { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); border-style: solid; }
+.cx .cx-bx[aria-pressed=true] { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+.cx .cx-key { display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.cx .cx-key span { display: inline-flex; align-items: center; gap: .4em; }
+.cx .cx-key i { width: .85em; height: .85em; border-radius: 3px; border: 1px solid var(--color-border-line); background: var(--color-bg); flex: none; }
+.cx .cx-key i.first { box-shadow: inset 0 0 0 1px var(--color-fg); border-color: var(--color-fg); }
+.cx .cx-key i.testing { background: var(--color-fg); border-color: var(--color-fg); }
+.cx .cx-key i.customer { border-color: var(--color-fg-muted); border-style: dashed; }
+
+/* ---- the lean canvas, in Maurya's layout ---- */
+.cx .cx-lean { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px;
+  grid-template-areas: "PR PR SO SO UV UV UA UA CS CS" "PR PR KM KM UV UV CH CH CS CS" "CO CO CO CO CO RS RS RS RS RS"; }
+.cx .cx-blk { min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 7px; border: 1px dashed var(--color-border-line);
+  border-radius: var(--cds-radius); background: var(--color-panel); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cx .cx-blk.covered { border-style: solid; }
+.cx .cx-blk.first { border: 1px solid var(--color-fg); box-shadow: inset 0 0 0 1px var(--color-fg); }
+.cx .cx-blk[aria-expanded=true] { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+.cx .cx-blk .cx-bn { font-size: var(--cds-font-size-caption); font-weight: 600; line-height: 1.25; }
+.cx .cx-blk .cx-chips { display: flex; flex-wrap: wrap; gap: 3px; }
+.cx .cx-blk .cx-cov { margin-top: auto; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.4; }
+.cx .cx-blk .cx-cov b { white-space: nowrap; }
+.cx .cx-blk.covered .cx-cov b { color: var(--color-ok); }
+.cx .cx-bars { display: grid; gap: var(--cds-gap-md); }
+.cx .cx-barrow { display: grid; grid-template-columns: 7.5rem 1fr; gap: .3rem .9rem; align-items: center; }
+.cx .cx-barrow .cx-bl { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.cx .cx-barrow .cx-bw { display: grid; grid-template-columns: 1fr auto; gap: .6rem; align-items: center; }
+.cx .cx-barrow .cx-bt { grid-column: 1 / -1; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.55; max-width: 62ch; }
+.cx .cx-bar { height: .5rem; border-radius: 999px; background: var(--color-bg); border: 1px solid var(--color-border-line); overflow: hidden; }
+.cx .cx-bar > i { display: block; height: 100%; background: var(--color-fg-muted); border-radius: 999px; }
+
+/* ---- the rows table ---- */
+.cx .cx-tools { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.cx .cx-search { flex: 1 1 11rem; min-width: 0; padding: .4em .7em; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius);
+  background: var(--color-bg); color: var(--color-fg); font: inherit; font-size: var(--cds-font-size-caption); }
+.cx .cx-scroll { max-height: 27rem; overflow: auto; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); }
+.cx table.cx-rows { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); }
+.cx table.cx-rows th { position: sticky; top: 0; z-index: 1; background: var(--color-panel); border-bottom: 1px solid var(--color-border-line);
+  padding: 0; text-align: left; font-weight: 600; white-space: nowrap; }
+.cx table.cx-rows th button { width: 100%; padding: .55em .7em; border: 0; background: none; color: var(--color-fg-muted); font: inherit; font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase; font-size: var(--cds-font-size-caption); text-align: left; cursor: pointer; }
+.cx table.cx-rows th[aria-sort] button { color: var(--color-fg); }
+.cx table.cx-rows td { padding: .5em .7em; border-top: 1px solid var(--color-border-line); vertical-align: top; line-height: 1.45; }
+.cx table.cx-rows tr.sel td { background: var(--color-bg); }
+.cx table.cx-rows tr:hover td { background: var(--color-bg); cursor: pointer; }
+.cx table.cx-rows .cx-clip { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cx table.cx-rows .c-id { width: 3.6rem; } .cx table.cx-rows .c-m, .cx table.cx-rows .c-e { width: 5.2rem; white-space: nowrap; }
+.cx table.cx-rows .c-tag { width: 7rem; }
+
+/* ---- the log ---- */
+.cx .cx-day { display: grid; grid-template-columns: 5.5rem 1fr; gap: .4rem .9rem; align-items: start; padding: var(--cds-pad-sm) 0; border-top: 1px solid var(--color-border-line); }
+.cx .cx-day:first-child { border-top: 0; }
+.cx .cx-day > .cx-dt { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); white-space: nowrap; padding-top: .15rem; }
+.cx .cx-day ul { margin: 0; padding: 0; list-style: none; display: grid; gap: .3rem; }
+.cx .cx-day li { display: grid; grid-template-columns: auto 1fr; gap: .55rem; align-items: baseline; font-size: var(--cds-font-size-body); line-height: 1.45; }
+.cx .cx-week { display: flex; align-items: center; gap: .75rem; font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-fg-muted); margin-top: var(--cds-gap-md); }
+.cx .cx-week:first-child { margin-top: 0; }
+.cx .cx-week::after { content: ""; flex: 1; height: 1px; background: var(--color-border-line); }
+
+/* ---- states ---- */
+.cx .cx-fail { display: flex; align-items: center; justify-content: center; gap: .5em; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: 2.5rem; }
+.cx .cx-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); flex: none; }
+.cx .cx-ok { color: var(--color-ok); }
+.cx .cx-warnbox { font-size: var(--cds-font-size-caption); color: var(--color-warn); }
+.cx [data-dash-source-state=empty] { color: transparent; }
+.cx [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+.cx [hidden] { display: none !important; }
+.cx .cx-foot { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 64ch; line-height: 1.6;
+  margin-top: var(--cds-gap-xl); padding-top: var(--cds-pad-md); border-top: 1px solid var(--color-border-line); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cx .cx-panel:not([hidden]) > * { animation: cx-rise var(--cds-dur-slow) var(--cds-ease-out) both; }
+  .cx .cx-panel:not([hidden]) > *:nth-child(2) { animation-delay: 40ms; }
+  .cx .cx-panel:not([hidden]) > *:nth-child(3) { animation-delay: 80ms; }
+  .cx .cx-panel:not([hidden]) > *:nth-child(n+4) { animation-delay: 120ms; }
+  @keyframes cx-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+@media (max-width: 640px) {
+  .cx .cx-lean { grid-template-columns: 1fr 1fr; grid-template-areas: "CS PR" "UV UV" "SO CH" "RS CO" "KM UA"; }
+  .cx .cx-barrow { grid-template-columns: 1fr; }
+  .cx table.cx-rows .c-tag { display: none; }
+  .cx .cx-day { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) { .cx .cx-cell { min-height: 46px; padding: 3px; } .cx .cx-num-xl { font-size: calc(var(--cds-font-size-title) * 1.5); } }
+</style>
+
+<div class="cx">
+  <header class="cx-top">
+    <h1 id="title">Experiments</h1>
+    <p class="cx-state" id="state" hidden></p>
+    <p class="cx-cap" id="lede">One hypothesis at a time.</p>
+  </header>
+
+  <nav class="cx-tabs" id="tabs" role="tablist" aria-label="Sections"></nav>
+
+  <!-- ============ TODAY ============ -->
+  <div class="cx-panel" id="now" role="tabpanel" aria-labelledby="tab-now">
+    <section id="attention">
+      <div class="cx-shead"><h2>What needs you</h2><p class="cx-cap">Anything here is yours to decide or do. Nothing else on this page is.</p></div>
+      <div id="waiting" data-source="experiments"></div>
+    </section>
+
+    <section id="running">
+      <div class="cx-shead"><h2>Running now</h2><p class="cx-cap">The window, the bar it has to clear, and the live count when the card names one.</p></div>
+      <div class="cx-stack" id="running-list" data-source="experiments"></div>
+    </section>
+
+    <section id="lastread">
+      <div class="cx-shead"><h2>The last thing we learned</h2><p class="cx-cap">The most recent experiment to reach a ruling.</p></div>
+      <div id="last-card" data-source="experiments"></div>
+    </section>
+  </div>
+
+  <!-- ============ BOARD ============ -->
+  <div class="cx-panel" id="board" role="tabpanel" aria-labelledby="tab-board" hidden>
+    <section id="timeline">
+      <div class="cx-shead"><h2>Every experiment, on one timeline</h2><p class="cx-cap">Each bar is a measurement window. Tap a bar to open its card below.</p></div>
+      <div class="cx-card">
+        <div class="cx-chart" id="tl" data-source="experiments"></div>
+        <div class="cx-key" id="tl-key"></div>
+      </div>
+    </section>
+
+    <section id="cards">
+      <div class="cx-shead"><h2>The cards</h2><p class="cx-cap">Newest first. Tap a row for the whole card. Persevere, pivot or kill is recorded only once a window has closed and the learning card is written.</p></div>
+      <div class="cx-board" id="board-list" data-source="experiments"></div>
+    </section>
+  </div>
+
+  <!-- ============ MODEL ============ -->
+  <div class="cx-panel" id="next" role="tabpanel" aria-labelledby="tab-next" hidden>
+    <section id="riskiest-sec">
+      <div class="cx-shead"><h2>Test these next</h2><p class="cx-cap" id="canvas-ver" data-source="canvas-meta">—</p></div>
+      <div class="cx-grid-2" id="riskiest" data-source="canvas-meta canvas experiments"></div>
+    </section>
+
+    <section id="vp">
+      <div class="cx-shead"><h2>The value proposition</h2><p class="cx-cap">Does what customers want line up with what you offer?</p></div>
+      <div class="cx-card" id="vp-card" data-source="canvas-meta"></div>
+    </section>
+
+    <section id="model">
+      <div class="cx-shead"><h2>The business model</h2><p class="cx-cap" id="model-cov">—</p></div>
+      <div class="cx-card" data-source="canvas canvas-meta experiments">
+        <p class="cx-prose" id="model-summary"></p>
+        <div class="cx-lean" id="model-grid"></div>
+        <p class="cx-cap">Covered means at least one row in that block was seen in real data or tried once. A planned test does not count. Tap a block for its rows.</p>
+      </div>
+      <div class="cx-card cx-quiet cx-bars" id="model-bars" data-source="canvas canvas-meta"></div>
+    </section>
+
+    <section id="map-sec">
+      <div class="cx-shead"><h2>What matters against what we know</h2><p class="cx-cap">Top-left is where to test first: everything rests on it and we know nothing. Tap any box to read it.</p></div>
+      <div class="cx-map" id="map" data-source="canvas experiments" role="group" aria-label="Assumptions map: how much each box matters against how much evidence we have"></div>
+      <div class="cx-key">
+        <span><i class="first"></i>test first</span>
+        <span><i class="testing"></i>a test is planned or running on it</span>
+        <span><i class="customer"></i>customer side</span>
+        <span><i></i>your side</span>
+        <span>One letter is the value proposition canvas (J1, C4); two is the Lean Canvas (CH2, RS1).</span>
+      </div>
+    </section>
+
+    <section id="rows">
+      <div class="cx-shead"><h2>Every row of both canvases</h2><p class="cx-cap">Sorted by what matters most and is least known. Tap a row to read it in full.</p></div>
+      <div class="cx-tools" id="row-tools"></div>
+      <div class="cx-scroll">
+        <table class="cx-rows" id="row-table" data-source="canvas" data-row-key="id">
+          <thead><tr id="row-head"></tr></thead>
+          <tbody id="row-body"></tbody>
+        </table>
+      </div>
+      <p class="cx-cap" id="row-count">—</p>
+      <div id="box-detail" data-source="canvas experiments"></div>
+    </section>
+  </div>
+
+  <!-- ============ LOG ============ -->
+  <div class="cx-panel" id="since" role="tabpanel" aria-labelledby="tab-since" hidden>
+    <section id="feed-sec">
+      <div class="cx-shead"><h2>What has happened</h2><p class="cx-cap" id="feed-cap">Newest first.</p></div>
+      <div class="cx-card cx-quiet" id="feed" data-source="events"></div>
+    </section>
+  </div>
+
+  <p class="cx-foot">The cards in the <a id="repo" href="#" target="_blank" rel="noopener">experiments repo</a> are the record. The board, the two canvases and the log on this page are what Claude last synced from them; a live count, when a running card names one, comes straight from its source.</p>
+</div>
+
+<script>
+(function () {
+  // kit.config.json, written into the page by build_dash_files.py at every sync
+  const KIT = /*KIT_CONFIG*/{ business: 'My business', timezone: 'UTC', utc_offset: '+00:00', weekend: ['Sat', 'Sun'], week_starts: 'Mon', repo_url: '' };
+  const TZ = KIT.timezone || 'UTC';
+  const STATUS = { planned: 'Planned', running: 'Running', hold: 'On hold', done: 'Done' };
+  const DECISION = { none: 'No decision yet', persevere: 'Persevere', pivot: 'Pivot', kill: 'Kill' };
+  const BOXKIND = { J: 'Customer jobs', P: 'Pains', G: 'Gains', S: 'Products and services', R: 'Pain relievers', C: 'Gain creators' };
+  // The Lean Canvas blocks in Maurya's reading order; the grid places each by its prefix (grid-area).
+  const LEAN = [['CS', 'Customer segments'], ['PR', 'Problem'], ['UV', 'Unique value proposition'], ['SO', 'Solution'], ['CH', 'Channels'],
+    ['RS', 'Revenue streams'], ['CO', 'Cost structure'], ['KM', 'Key metrics'], ['UA', 'Unfair advantage']];
+  const THEMES = ['desirability', 'feasibility', 'viability'];
+  const MATTERS = ['', 'matters a little', 'matters', 'everything rests on it'];
+  const EVIDENCE = ['no evidence', 'a hint', 'seen once', 'established'];
+  const TABS = [['now', 'Today'], ['board', 'Board'], ['next', 'Model'], ['since', 'Log']];
+
+  // What the reader has chosen, kept across redraws (onData runs again on every width change).
+  let tab = 'now', openBlock = null, selBox = null, filter = 'all', query = '', sortKey = 'risk', sortDir = 1, rose = false;
+
+  const h = (tag, attrs, ...kids) => {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) { if (k === 'class') el.className = v; else if (k.startsWith('on')) el.addEventListener(k.slice(2), v); else if (v != null) el.setAttribute(k, v); }
+    for (const k of kids.flat(Infinity)) if (k != null) el.append(k.nodeType ? k : document.createTextNode(String(k)));
+    return el;
+  };
+  const $ = (id) => document.getElementById(id);
+  const num = (v) => (v == null || v === '' ? '—' : d3.format(',')(Number(v)));
+  const parseIso = (s) => { if (!s) return null; const d = new Date(String(s).length <= 10 ? s + 'T00:00:00' + (KIT.utc_offset || '+00:00') : s); return isNaN(d) ? null : d; };
+  const fmtDate = (s) => { const d = parseIso(s); return d ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: TZ }) : (s || ''); };
+  const fmtDateTime = (s) => { const d = parseIso(s); if (!d) return s || ''; return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: TZ }) + (String(s).length > 10 ? ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: TZ }) + ' ' + TZ.split('/').pop().replace(/_/g, ' ') : ''); };
+  const spansWeekend = (a, b) => { const s = parseIso(a), e = parseIso(b); if (!s || !e) return false; for (let t = new Date(s); t <= e; t.setDate(t.getDate() + 1)) { const wd = t.toLocaleDateString('en-US', { weekday: 'short', timeZone: TZ }); if ((KIT.weekend || []).includes(wd)) return true; } return false; };
+  const ago = (v) => { const d = parseIso(v); if (!d) return ''; const hrs = (Date.now() - d) / 36e5;
+    if (hrs < 0) return 'just now'; if (hrs < 1) return Math.max(1, Math.round(hrs * 60)) + ' min ago';
+    return hrs < 48 ? Math.round(hrs) + ' h ago' : Math.floor(hrs / 24) + ' days ago'; };
+  const timeLeft = (s) => { const e = parseIso(s); if (!e) return ''; const ms = e - Date.now(); if (ms <= 0) return 'window closed'; const hrs = Math.round(ms / 36e5); return hrs < 48 ? `${hrs} h left` : `${Math.floor(hrs / 24)} days left`; };
+  // bar_met comes through as a real true/false, or as nothing at all while a window is still open
+  const barMet = (v) => (v === true || v === 'True' || v === 'true') ? 'yes' : (v === false || v === 'False' || v === 'false') ? 'no' : '';
+  const pillSt = (s) => h('span', { class: 'cx-pill st-' + s }, STATUS[s] || s);
+  const pillDc = (d) => h('span', { class: 'cx-pill dc-' + d }, DECISION[d] || d);
+  const idChip = (id) => h('span', { class: 'cx-id' }, id);
+  const splitList = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
+  const boxesOf = (e) => splitList(e.boxes).map((t) => ({ id: t.replace(/^~/, ''), role: t.startsWith('~') ? 'closest' : 'main' }));
+  const fail = (el) => el && el.replaceChildren(h('div', { class: 'cx-fail' }, 'Failed to load'));
+  const fact = (label, ...value) => h('div', { class: 'cx-fact' }, h('span', {}, label), h('span', {}, value));
+  // A 0–3 score as dots with its number beside them, so the value still reads as the data holds it.
+  const dots = (n, warn) => h('span', {}, h('span', { class: 'cx-dots' + (warn ? ' warn' : ''), 'aria-hidden': 'true' },
+    [0, 1, 2].map((i) => h('i', { class: i < Number(n) ? 'on' : '' }))), String(n));
+
+  // A small markdown reader for the cards: text only, nothing from a card runs.
+  function inline(text) {
+    const frag = document.createDocumentFragment();
+    const re = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g; let last = 0, m;
+    while ((m = re.exec(text))) {
+      frag.append(text.slice(last, m.index)); const t = m[0];
+      if (t.startsWith('**')) frag.append(h('b', {}, t.slice(2, -2)));
+      else if (t.startsWith('`')) frag.append(h('code', {}, t.slice(1, -1)));
+      else { const mm = /\[([^\]]+)\]\(([^)]+)\)/.exec(t); const href = /^https?:\/\//.test(mm[2]) ? mm[2] : null; frag.append(href ? h('a', { href, target: '_blank', rel: 'noopener' }, mm[1]) : mm[1]); }
+      last = m.index + t.length;
+    }
+    frag.append(text.slice(last)); return frag;
+  }
+  function markdown(text) {
+    const out = h('div', { class: 'cx-md' }); const lines = String(text || '').replace(/\r/g, '').split('\n'); let i = 0;
+    while (i < lines.length) {
+      const l = lines[i];
+      if (!l.trim()) { i++; continue; }
+      if (/^#{1,6} /.test(l)) { out.append(h('div', { class: 'cx-h' }, inline(l.replace(/^#+ /, '')))); i++; continue; }
+      if (l.startsWith('|')) { const rows = []; while (i < lines.length && lines[i].startsWith('|')) rows.push(lines[i++]); const tb = h('table'); rows.filter((r) => !/^\|\s*:?-{2,}/.test(r)).forEach((r, ri) => tb.append(h('tr', {}, ...r.trim().replace(/^\||\|$/g, '').split('|').map((c) => h(ri === 0 ? 'th' : 'td', {}, inline(c.trim())))))); out.append(tb); continue; }
+      if (/^\s*([-*]|\d+\.) /.test(l)) { const ul = h('ul'); while (i < lines.length && /^\s*([-*]|\d+\.) /.test(lines[i])) { let item = lines[i].replace(/^\s*([-*]|\d+\.) /, ''); i++; while (i < lines.length && /^\s{2,}\S/.test(lines[i]) && !/^\s*([-*]|\d+\.) /.test(lines[i])) item += ' ' + lines[i++].trim(); ul.append(h('li', {}, inline(item))); } out.append(ul); continue; }
+      if (l.startsWith('>')) { const q = []; while (i < lines.length && lines[i].startsWith('>')) q.push(lines[i++].replace(/^>\s?/, '')); out.append(h('div', { class: 'cx-q' }, inline(q.join(' ')))); continue; }
+      if (l.startsWith('---')) { i++; continue; }
+      const p = []; while (i < lines.length && lines[i].trim() && !/^(#{1,6} |\||>|---|\s*([-*]|\d+\.) )/.test(lines[i])) p.push(lines[i++].trim());
+      out.append(h('p', {}, inline(p.join(' '))));
+    }
+    return out;
+  }
+
+  // ---------- tabs ----------
+  function buildTabs() {
+    const nav = $('tabs');
+    nav.replaceChildren(...TABS.map(([id, label]) => h('button', {
+      class: 'cx-tab', type: 'button', role: 'tab', id: 'tab-' + id, 'aria-controls': id, 'aria-selected': String(tab === id),
+      onclick: () => { show(id); dash.setLink(id); }
+    }, label, h('span', { class: 'cx-n', id: 'tabn-' + id }))));
+  }
+  function show(id) {
+    tab = id;
+    for (const [t] of TABS) { $(t).hidden = t !== id; const b = $('tab-' + t); if (b) b.setAttribute('aria-selected', String(t === id)); }
+  }
+  function tabCount(id, text) { const el = $('tabn-' + id); if (el) el.textContent = text || ''; }
+
+  // ---------- Today ----------
+  function renderState(exps) {
+    const running = exps.filter((e) => e.status === 'running');
+    const waiting = waitingOn(exps);
+    const last = lastDecided(exps);
+    const el = $('state'); el.replaceChildren(); el.hidden = false;
+    el.append(running.length ? h('b', {}, running.length === 1 ? '1 experiment running' : running.length + ' experiments running') : h('b', {}, 'Nothing running'));
+    el.append(' · ');
+    el.append(waiting.length ? h('b', {}, waiting.length === 1 ? '1 thing waiting on you' : waiting.length + ' things waiting on you') : 'nothing waiting on you');
+    if (last) { el.append(' · last ruling: '); el.append(h('b', {}, DECISION[last.decision] + ' on ' + last.id)); }
+    tabCount('now', waiting.length ? String(waiting.length) : '');
+    tabCount('board', String(exps.length));
+  }
+  const waitingOn = (exps) => exps.filter((e) => e.waiting_on || (e.status === 'running' && parseIso(e.window_end) && parseIso(e.window_end) < new Date()));
+  const lastDecided = (exps) => exps.filter((e) => e.decided).sort((a, b) => String(b.decided).localeCompare(String(a.decided)))[0];
+
+  function renderWaiting(exps) {
+    const box = $('waiting'); box.replaceChildren();
+    const waiting = waitingOn(exps);
+    if (!waiting.length) {
+      box.append(h('div', { class: 'cx-card' }, h('div', { class: 'cx-fact' },
+        h('span', {}, 'Your queue'), h('span', { class: 'cx-ok' }, 'Nothing is waiting on you.'))));
+      return;
+    }
+    const card = h('div', { class: 'cx-card' });
+    card.append(h('div', { class: 'cx-eyebrow', style: 'color:var(--color-warn)' }, waiting.length === 1 ? '1 thing waiting on you' : waiting.length + ' things waiting on you'));
+    for (const e of waiting) card.append(h('div', { class: 'cx-ob', style: 'font-size:var(--cds-font-size-body)' },
+      idChip(e.id), h('span', {}, e.waiting_on || 'The window has closed. Say "log ' + e.id + '" to write the learning card.')));
+    box.append(card);
+  }
+
+  // A running experiment: how far through its window it is, the live count, the bar, the last read.
+  function renderRunning(exps) {
+    const list = $('running-list'); list.replaceChildren();
+    const running = exps.filter((e) => e.status === 'running');
+    if (!running.length) { list.append(h('div', { class: 'cx-card' }, h('p', { class: 'cx-muted' }, 'Nothing is running.'))); return; }
+    for (const e of running) {
+      const card = h('div', { class: 'cx-card' });
+      card.append(h('div', { class: 'cx-ob', style: 'font-size:var(--cds-font-size-heading)' }, idChip(e.id), h('span', { class: 'cx-t' }, e.title)));
+      const s = parseIso(e.window_start), x = parseIso(e.window_end);
+      if (s && x) {
+        const span = x - s, done = Math.min(Math.max((Date.now() - s) / span, 0), 1);
+        const dayN = Math.max(1, Math.ceil((Date.now() - s) / 864e5)), dayT = Math.max(1, Math.ceil(span / 864e5));
+        card.append(h('div', { class: 'cx-meter' },
+          h('div', { class: 'cx-ends' }, h('span', {}, `Day ${dayN} of ${dayT}`), h('span', {}, timeLeft(e.window_end))),
+          h('div', { class: 'cx-track', role: 'img', 'aria-label': `${Math.round(done * 100)}% of the window has passed` }, h('i', { style: `width:${(done * 100).toFixed(1)}%` })),
+          h('div', { class: 'cx-ends' }, h('span', {}, fmtDateTime(e.window_start)), h('span', {}, fmtDateTime(e.window_end)))));
+      } else card.append(h('p', { class: 'cx-cap' }, 'No window end is set.'));
+      if (e.live_dataset) card.append(liveCount(e.live_dataset));
+      card.append(h('div', { class: 'cx-facts cx-sep' },
+        fact('The bar it has to clear', h('span', { class: 'cx-quote' }, e.bar))));
+      card.append(lastRead(e));
+      if (spansWeekend(e.window_start, e.window_end)) card.append(h('p', { class: 'cx-warnbox' }, 'The window covers a weekend (' + (KIT.weekend || []).join('–') + ').'));
+      list.append(card);
+    }
+  }
+
+  // The last read, as a scoreboard instead of one long sentence: when it was taken, the single count
+  // that answers the bar and how far that is, the counts behind it, and what not to trust about it.
+  // The sentence itself stays the record (`result` in the card header) and folds open underneath.
+  function lastRead(e) {
+    const box = h('div', { class: 'cx-sep', style: 'display:grid;gap:.55rem' });
+    box.append(h('div', { class: 'cx-ends' }, h('span', { class: 'cx-eyebrow' }, 'Last read'),
+      h('span', {}, e.read_at ? fmtDateTime(e.read_at) + ' · ' + ago(e.read_at) : 'when it was taken is not recorded')));
+    const target = Number(e.score_target);
+    if (e.score_now != null && e.score_now !== '' && target > 0) {
+      const pct = Math.min(Math.max(Number(e.score_now) / target, 0), 1);
+      box.append(h('div', { class: 'cx-meter' },
+        h('div', { class: 'cx-score' }, h('span', { class: 'cx-num cx-num-md' }, num(e.score_now) + ' of ' + num(target)),
+          h('span', { class: 'cx-cap' }, e.score_label)),
+        h('div', { class: 'cx-track', role: 'img', 'aria-label': `${Math.round(pct * 100)}% of the bar` },
+          h('i', { style: `width:${(pct * 100).toFixed(1)}%` })),
+        h('div', { class: 'cx-ends' }, h('span', {}, Math.round(pct * 100) + '% of the bar'),
+          // the bar is the card's own words, so it says itself when the founder has not settled it yet
+          String(e.bar || '').includes('DRAFT') ? h('span', { class: 'cx-warnbox' }, 'the bar is still a draft') : null)));
+    } else box.append(h('p', { class: 'cx-cap' }, e.result ? 'This read carries no number against the bar.' : 'Nothing has been read yet.'));
+    // the tiles arrive as one cell, n and label joined by the middle dot, the tiles by the bar
+    const parts = String(e.score_parts || '').split('|').filter(Boolean).map((p) => p.split('·'));
+    if (parts.length) box.append(h('div', { class: 'cx-tiles' }, ...parts.map(([n, label]) =>
+      h('div', {}, h('div', { class: 'cx-num cx-num-sm' }, n), h('div', { class: 'cx-cap' }, label || '')))));
+    if (e.score_caveat) box.append(h('p', { class: 'cx-warnbox' }, '🟡 ' + e.score_caveat));
+    if (e.result) {
+      const full = h('p', { class: 'cx-cap', hidden: '' }, e.result);
+      const btn = h('button', { class: 'cx-btn', type: 'button', 'aria-pressed': 'false',
+        onclick: () => { full.hidden = !full.hidden; btn.setAttribute('aria-pressed', String(!full.hidden)); } }, 'The full read');
+      box.append(h('div', { class: 'cx-links' }, btn), full);
+    }
+    return box;
+  }
+
+  // A running experiment can name a live query (header field live_dataset): the count straight from its
+  // source, refreshed on every open. Every column of the first row becomes a tile, named after the column.
+  function liveCount(id) {
+    const d = dash.data(id);
+    if (d.status === 'error' || d.status === 'connect') return h('div', { class: 'cx-fail' }, 'Live count failed to load');
+    const row = d.status === 'ok' && d.data && d.data[0];
+    const cols = row ? Object.keys(row) : [];
+    return h('div', { class: 'cx-sep', style: 'display:grid;gap:.45rem' },
+      h('div', { class: 'cx-eyebrow' }, 'Live now, straight from the source'),
+      row ? h('div', { class: 'cx-tiles' }, ...cols.map((c) => h('div', {},
+        h('div', { class: 'cx-num cx-num-md', 'data-source': id, 'data-field': c, 'data-row': '0' }, row[c] != null && !isNaN(row[c]) ? num(row[c]) : String(row[c] ?? '—')),
+        h('div', { class: 'cx-cap' }, c.replace(/_/g, ' ')))))
+        : h('div', { class: 'cx-num cx-num-md dash-skeleton' }, '—'));
+  }
+
+  function renderLast(exps) {
+    const box = $('last-card'); box.replaceChildren();
+    const e = lastDecided(exps);
+    if (!e) { box.append(h('div', { class: 'cx-card' }, h('p', { class: 'cx-muted' }, 'Nothing has been logged yet.'))); return; }
+    const met = barMet(e.bar_met);
+    box.append(h('div', { class: 'cx-card' },
+      h('div', { class: 'cx-ob' }, h('span', { class: 'cx-pill dc-' + e.decision, style: 'font-size:var(--cds-font-size-body)' }, DECISION[e.decision]),
+        h('span', { class: 'cx-cap' }, 'logged ' + fmtDate(e.decided))),
+      h('div', { class: 'cx-ob', style: 'font-size:var(--cds-font-size-heading);margin-top:.2rem' }, idChip(e.id), h('span', {}, e.title)),
+      h('div', { class: 'cx-facts cx-sep' },
+        fact('What came back', h('b', {}, e.result), met ? h('span', { class: 'cx-met ' + met }, met === 'yes' ? ' — bar cleared' : ' — bar missed') : null),
+        fact('The bar was', h('span', { class: 'cx-quote' }, e.bar)),
+        fact('Where that leaves us', e.note),
+        e.next ? fact('What it pointed to next', e.next) : null)));
+  }
+
+  // ---------- Board ----------
+  // Every experiment's window on one date axis: what ran when, and what it was ruled.
+  function renderTimeline(exps) {
+    const box = $('tl'); box.replaceChildren();
+    // newest at the top, so the lanes line up with the cards listed under it
+    const rows = [...exps].sort((a, b) => String(b.id).localeCompare(String(a.id)));
+    if (!rows.length) return;
+    const w = Math.max(260, box.clientWidth || 320), left = 42, right = 10, lane = 30, padT = 26, padB = 26;
+    const H = padT + rows.length * lane + padB;
+    const dates = [new Date()];
+    for (const e of rows) for (const v of [e.window_start, e.window_end, e.decided, e.held]) { const d = parseIso(v); if (d) dates.push(d); }
+    const ext = d3.extent(dates);
+    const x = d3.scaleUtc([d3.utcDay.offset(ext[0], -4), d3.utcDay.offset(ext[1], 4)], [left, w - right]);
+    const svg = d3.create('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${w} ${H}`);
+    const tip = h('div', { class: 'cx-tip', hidden: '' });
+
+    for (const t of x.ticks(d3.utcMonth)) {
+      svg.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', padT - 8).attr('y2', H - padB).attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+      svg.append('text').attr('x', x(t)).attr('y', padT - 13).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text(fmtDate(d3.utcFormat('%Y-%m-%d')(t)));
+    }
+    const nx = x(new Date());
+    svg.append('line').attr('x1', nx).attr('x2', nx).attr('y1', padT - 8).attr('y2', H - padB + 4).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-width', 1).attr('stroke-dasharray', '3 3');
+    svg.append('text').attr('x', nx).attr('y', H - padB + 16).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text('today');
+
+    rows.forEach((e, i) => {
+      const cy = padT + i * lane + lane / 2;
+      svg.append('text').attr('x', 0).attr('y', cy + 4).attr('font-size', 11).attr('font-weight', 600).attr('fill', 'var(--color-fg-muted)').text(e.id);
+      const s = parseIso(e.window_start), xe = parseIso(e.window_end);
+      if (s && xe) {
+        const x0 = x(s), x1 = Math.max(x(xe), x0 + 3);
+        svg.append('rect').attr('x', x0).attr('y', cy - 5).attr('width', x1 - x0).attr('height', 10).attr('rx', 4)
+          .attr('fill', e.status === 'running' ? 'var(--color-fg)' : 'var(--cds-chart-muted)')
+          .attr('opacity', e.status === 'running' ? 1 : .55);
+      } else {
+        const at = parseIso(e.decided) || parseIso(e.held);
+        if (at) svg.append('circle').attr('cx', x(at)).attr('cy', cy).attr('r', 4).attr('fill', 'none').attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 1.5);
+        else svg.append('text').attr('x', left).attr('y', cy + 4).attr('font-size', 11).attr('fill', 'var(--color-fg-muted)').text('no window recorded');
+      }
+      const dec = parseIso(e.decided);
+      if (dec && e.decision && e.decision !== 'none') svg.append('circle').attr('cx', x(dec)).attr('cy', cy).attr('r', 4.5)
+        .attr('fill', e.decision === 'persevere' ? 'var(--color-ok)' : e.decision === 'kill' ? 'var(--color-bad)' : 'var(--color-warn)');
+      // one transparent lane for hover and tap, so the whole row is a target
+      svg.append('rect').attr('x', 0).attr('y', cy - lane / 2).attr('width', w).attr('height', lane).attr('fill', 'transparent').style('cursor', 'pointer')
+        .on('mousemove', (ev) => {
+          tip.hidden = false; tip.replaceChildren(h('div', { class: 'cx-tt' }, e.id + ' · ' + (STATUS[e.status] || e.status)), h('div', {}, e.title),
+            h('div', { class: 'cx-tt' }, e.window_start ? fmtDate(e.window_start) + ' → ' + (e.window_end ? fmtDate(e.window_end) : '?') : 'no window'));
+          const r = box.getBoundingClientRect();
+          tip.style.left = Math.min(Math.max(ev.clientX - r.left + 12, 4), Math.max(4, r.width - 230)) + 'px';
+          tip.style.top = (cy + 14) + 'px';
+        })
+        .on('mouseleave', () => { tip.hidden = true; })
+        .on('click', () => { const t = $('exp-' + e.id); if (t) { t.open(); t.scrollIntoView({ block: 'center' }); } });
+    });
+    box.append(svg.node(), tip);
+    $('tl-key').replaceChildren(
+      h('span', {}, h('i', { style: 'background:var(--color-fg);border-color:var(--color-fg)' }), 'running'),
+      h('span', {}, h('i', { style: 'background:var(--cds-chart-muted);border-color:var(--cds-chart-muted)' }), 'closed window'),
+      h('span', {}, h('i', { style: 'background:var(--color-ok);border-radius:50%;border-color:var(--color-ok)' }), 'persevere'),
+      h('span', {}, h('i', { style: 'background:var(--color-warn);border-radius:50%;border-color:var(--color-warn)' }), 'pivot'),
+      h('span', {}, h('i', { style: 'background:var(--color-bad);border-radius:50%;border-color:var(--color-bad)' }), 'kill'),
+      h('span', {}, h('i', { style: 'background:none' }), 'no window recorded'));
+  }
+
+  function renderBoard(exps) {
+    const list = $('board-list'); list.replaceChildren();
+    for (const e of [...exps].sort((a, b) => String(b.id).localeCompare(String(a.id)))) {
+      const met = barMet(e.bar_met);
+      const det = h('div', { class: 'cx-det', hidden: '' });
+      const item = h('div', { class: 'cx-item', id: 'exp-' + e.id });
+      const row = h('button', { class: 'cx-row', type: 'button', 'aria-expanded': 'false', onclick: () => toggle() },
+        idChip(e.id), h('span', { class: 'cx-t' }, e.title),
+        h('span', { class: 'cx-pills' }, pillSt(e.status), e.decision && e.decision !== 'none' ? pillDc(e.decision) : null),
+        h('span', { class: 'cx-outcome' },
+          h('span', { class: 'cx-ob' }, h('span', {}, 'The bar'), h('span', { class: 'cx-muted' }, e.bar)),
+          h('span', { class: 'cx-ob' }, h('span', {}, 'What came back'),
+            h('span', {}, h('b', {}, e.result || 'nothing yet'), met ? h('span', { class: 'cx-met ' + met }, met === 'yes' ? '  bar cleared' : '  bar missed') : null))));
+      const toggle = () => { const open = det.hidden; det.hidden = !open; row.setAttribute('aria-expanded', String(open)); if (open && !det.dataset.filled) fillDetail(det, e); };
+      item.open = () => { if (det.hidden) toggle(); };
+      item.append(row, det);
+      list.append(item);
+    }
+  }
+  function fillDetail(det, e) {
+    det.dataset.filled = '1';
+    const dl = h('dl', { class: 'cx-dl' },
+      h('div', {}, h('dt', {}, 'Where we are'), h('dd', {}, e.note)),
+      h('div', {}, h('dt', {}, 'Who it is about'), h('dd', {}, e.segment)),
+      h('div', {}, h('dt', {}, 'Method'), h('dd', {}, e.method, e.method_note ? h('span', { class: 'cx-muted' }, ' · ' + e.method_note) : null)),
+      h('div', {}, h('dt', {}, 'Canvas boxes it aims at'), h('dd', {}, boxesOf(e).map((b) => (b.role === 'closest' ? 'nearest ' : '') + b.id).join(', ') || 'none')),
+      h('div', {}, h('dt', {}, 'Effort and evidence'), h('dd', {}, `${e.effort} and ${e.evidence}`, h('span', { class: 'cx-muted' }, ' — 1 to 5 each: how hard it was to run, how strong the result is'))),
+      e.window_start || e.window_end ? h('div', {}, h('dt', {}, 'Window'), h('dd', {}, (e.window_start ? fmtDateTime(e.window_start) : '?') + ' → ' + (e.window_end ? fmtDateTime(e.window_end) : '?'))) : null,
+      e.held ? h('div', {}, h('dt', {}, 'Put on hold'), h('dd', {}, fmtDate(e.held))) : null,
+      e.decided ? h('div', {}, h('dt', {}, 'Logged'), h('dd', {}, fmtDate(e.decided))) : null,
+      e.waiting_on ? h('div', {}, h('dt', {}, 'Waiting on you'), h('dd', {}, e.waiting_on)) : null,
+      e.next ? h('div', {}, h('dt', {}, 'What it pointed to next'), h('dd', {}, e.next)) : null);
+    const panel = h('div', { hidden: '' });
+    const links = h('div', { class: 'cx-links' });
+    const open = (btn, text) => { const same = panel.dataset.key === btn; for (const b of links.children) b.setAttribute && b.setAttribute('aria-pressed', 'false');
+      if (same) { panel.hidden = true; panel.dataset.key = ''; return; }
+      panel.hidden = false; panel.dataset.key = btn; panel.replaceChildren(markdown(text)); };
+    if (e.test_card_text) { const b = h('button', { class: 'cx-btn', type: 'button', 'aria-pressed': 'false', onclick: () => { open('t', e.test_card_text); b.setAttribute('aria-pressed', String(!panel.hidden && panel.dataset.key === 't')); } }, 'Read the test card'); links.append(b); }
+    if (e.learning_card_text) { const b = h('button', { class: 'cx-btn', type: 'button', 'aria-pressed': 'false', onclick: () => { open('l', e.learning_card_text); b.setAttribute('aria-pressed', String(!panel.hidden && panel.dataset.key === 'l')); } }, 'Read the learning card'); links.append(b); }
+    if (e.url) links.append(h('a', { class: 'cx-btn', href: e.url, target: '_blank', rel: 'noopener' }, 'Folder on GitHub ↗'));
+    det.append(dl, links, panel);
+    const files = splitList(e.files);
+    if (files.length > 2) det.append(h('p', { class: 'cx-cap' }, 'Also in the folder: ' + files.join(', ')));
+  }
+
+  // ---------- Model ----------
+  function renderNext(boxes, metas, exps) {
+    const testing = {}, tested = {};
+    for (const e of exps) for (const b of boxesOf(e)) { (tested[b.id] = tested[b.id] || []).push(e); if (b.role === 'main' && e.status !== 'done') (testing[b.id] = testing[b.id] || []).push(e); }
+    const lcMeta = metas.find((m) => m.kind === 'lean-canvas') || null;
+    const vpMeta = metas.find((m) => !m.kind || m.kind === 'value-proposition') || null;
+    const isLean = (b) => !!(lcMeta && b.canvas === lcMeta.name);
+    const vp = boxes.filter((b) => !isLean(b)), lean = boxes.filter(isLean);
+    $('canvas-ver').textContent = [vpMeta, lcMeta].filter(Boolean).map((m) => `${m.name} v${m.version}, ${fmtDate(m.date)}`).join('   ·   ');
+    tabCount('next', String(boxes.length));
+
+    // the riskiest box of each canvas, as a card you can read in one look
+    const rk = $('riskiest'); rk.replaceChildren();
+    for (const [m, rowsOf, label] of [[vpMeta, vp, 'Value proposition'], [lcMeta, lean, 'Business model']]) {
+      const risk = m && rowsOf.find((b) => b.id === m.riskiest);
+      if (!risk) continue;
+      const on = (testing[risk.id] || [])[0];
+      rk.append(h('div', { class: 'cx-card' },
+        h('div', { class: 'cx-eyebrow' }, label + ' · riskiest'),
+        h('h3', {}, risk.text),
+        h('div', { class: 'cx-ob' }, idChip(risk.id), h('span', {}, h('span', { class: 'cx-tag tg-' + risk.tag }, risk.tag))),
+        h('p', { class: 'cx-note cx-muted' }, m.riskiest_why),
+        on ? h('p', { class: 'cx-note cx-sep' }, 'Being tested by ', idChip(on.id), ' ', on.title, ' ', pillSt(on.status))
+           : h('p', { class: 'cx-note cx-sep cx-muted' }, 'No experiment is planned on it. Say "test the idea that …".')));
+    }
+
+    // the value proposition in words: the summary and the three fits
+    const vpc = $('vp-card'); vpc.replaceChildren();
+    if (vpMeta) {
+      if (vpMeta.summary) vpc.append(h('p', { class: 'cx-prose' }, vpMeta.summary));
+      const fits = h('div', { class: 'cx-facts cx-sep' });
+      for (const [k, lab] of [['fit_jobs', 'Jobs meet products and services'], ['fit_pains', 'Pains meet pain relievers'], ['fit_gains', 'Gains meet gain creators']])
+        if (vpMeta[k]) fits.append(fact(lab, h('span', { class: 'cx-note' }, vpMeta[k])));
+      if (fits.children.length) vpc.append(fits);
+      vpc.append(h('p', { class: 'cx-cap' }, `${vp.length} boxes: ` + 'JPG'.split('').concat('SRC'.split('')).map((k) => `${vp.filter((b) => b.kind === k).length} ${BOXKIND[k].toLowerCase()}`).join(' · ')));
+    }
+    renderModel(lean, lcMeta, testing);
+    renderMap(boxes, testing);
+    renderRows(boxes, metas, tested, testing);
+  }
+
+  // The Lean Canvas: the nine blocks in Maurya's layout, then one bar and one sentence per theme.
+  function renderModel(lean, m, testing) {
+    const sec = $('model'); sec.hidden = !(m && lean.length);
+    if (sec.hidden) return;
+    const read = (b) => Number(b.evidence) >= 2;
+    const covered = new Set(splitList(m.covered));
+    $('model-cov').textContent = `${m.blocks_covered} of ${m.blocks_total} blocks are covered by real evidence.`;
+    const sum = $('model-summary'); sum.textContent = m.summary || ''; sum.hidden = !m.summary;
+    const grid = $('model-grid'); grid.replaceChildren();
+    for (const [k, name] of LEAN) {
+      const rows = lean.filter((b) => b.kind === k), n = rows.filter(read).length, cov = covered.has(k), via = cov && !n;
+      grid.append(h('button', {
+        type: 'button', style: 'grid-area:' + k, 'aria-expanded': String(openBlock === k),
+        class: 'cx-blk' + (cov ? ' covered' : '') + (rows.some((b) => b.id === m.riskiest) ? ' first' : ''),
+        onclick: () => { openBlock = openBlock === k ? null : k; selBox = null; filter = openBlock ? 'blk:' + k : 'all'; query = ''; renderAll(); const t = $('rows'); if (t) t.scrollIntoView({ block: 'start' }); }
+      },
+        h('span', { class: 'cx-bn' }, name),
+        h('span', { class: 'cx-chips' }, rows.map((b) => h('span', { class: 'cx-bx ' + b.side + (testing[b.id] ? ' testing' : '') }, b.id))),
+        h('span', { class: 'cx-cov' }, cov ? h('b', {}, '✓ covered') : 'not covered', ` · ${n} of ${rows.length} read`, via ? ' · through VP-A' : '')));
+    }
+    const bars = $('model-bars'); bars.replaceChildren(h('div', { class: 'cx-eyebrow' }, 'Read by theme'));
+    for (const t of THEMES) {
+      const rows = lean.filter((b) => b.theme === t), n = rows.filter(read).length;
+      bars.append(h('div', { class: 'cx-barrow' },
+        h('span', { class: 'cx-bl' }, t[0].toUpperCase() + t.slice(1)),
+        h('span', { class: 'cx-bw' },
+          h('span', { class: 'cx-bar', role: 'img', 'aria-label': `${t}: ${n} of ${rows.length} rows read` }, h('i', { style: `width:${rows.length ? Math.round(100 * n / rows.length) : 0}%` })),
+          h('span', { class: 'cx-cap' }, `${n} of ${rows.length} read`)),
+        m['theme_' + t] ? h('span', { class: 'cx-bt' }, m['theme_' + t]) : null));
+    }
+  }
+
+  function renderMap(boxes, testing) {
+    const map = $('map'); map.replaceChildren(h('div', { class: 'cx-ax' }));
+    for (const ev of [0, 1, 2, 3]) map.append(h('div', { class: 'cx-ax' }, EVIDENCE[ev]));
+    for (const m of [3, 2, 1]) {
+      map.append(h('div', { class: 'cx-ax y' }, MATTERS[m]));
+      for (const ev of [0, 1, 2, 3]) {
+        const cell = h('div', { class: 'cx-cell' + (m === 3 && ev <= 1 ? ' first' : '') + (ev === 3 ? ' known' : '') });
+        for (const b of boxes.filter((b) => Number(b.matters) === m && Number(b.evidence) === ev))
+          cell.append(h('button', {
+            type: 'button', class: 'cx-bx ' + b.side + (testing[b.id] ? ' testing' : ''), 'aria-pressed': String(selBox === b.id),
+            title: `${b.id}${b.block ? ' · ' + b.block : ''} · ${b.text}`,
+            onclick: () => { selBox = b.id; filter = 'all'; query = ''; renderAll(); const d = $('box-detail'); if (d) d.scrollIntoView({ block: 'center' }); }
+          }, b.id));
+        map.append(cell);
+      }
+    }
+  }
+
+  // Every row of both canvases as one table you can sort, search and narrow, with the
+  // long text — the note, the source, the tests — behind a tap instead of stacked on the page.
+  const COLS = [['id', 'ID', 'c-id'], ['text', 'What it claims', 'c-txt'], ['matters', 'Matters', 'c-m'], ['evidence', 'Evidence', 'c-e'], ['tag', 'Tag', 'c-tag']];
+  function renderRows(boxes, metas, tested, testing) {
+    const lcMeta = metas.find((m) => m.kind === 'lean-canvas') || null;
+    const blockName = (k) => (LEAN.find(([b]) => b === k) || [, k])[1];
+    // the filter chips: both canvases, one canvas, or one Lean Canvas block
+    const tools = $('row-tools'); tools.replaceChildren();
+    const chip = (key, label) => h('button', { class: 'cx-btn', type: 'button', 'aria-pressed': String(filter === key), onclick: () => { filter = key; selBox = null; openBlock = key.startsWith('blk:') ? key.slice(4) : null; renderAll(); } }, label);
+    tools.append(chip('all', `All ${boxes.length}`));
+    for (const name of [...new Set(boxes.map((b) => b.canvas))]) tools.append(chip('cv:' + name, name === (lcMeta && lcMeta.name) ? 'Business model' : 'Value proposition'));
+    if (filter.startsWith('blk:')) tools.append(chip(filter, blockName(filter.slice(4))));
+    tools.append(h('input', {
+      class: 'cx-search', type: 'search', placeholder: 'Search the rows…', 'aria-label': 'Search the rows',
+      value: query, oninput: (ev) => { query = ev.target.value; selBox = null; paint(); }
+    }));
+
+    const head = $('row-head'); head.replaceChildren();
+    for (const [key, label, cls] of COLS) {
+      const th = h('th', { class: cls, 'data-field': key });
+      if (sortKey === key) th.setAttribute('aria-sort', sortDir > 0 ? 'ascending' : 'descending');
+      th.append(h('button', { type: 'button', onclick: () => { if (sortKey === key) sortDir = -sortDir; else { sortKey = key; sortDir = 1; } renderAll(); } },
+        label + (sortKey === key ? (sortDir > 0 ? ' ↑' : ' ↓') : '')));
+      head.append(th);
+    }
+
+    const body = $('row-body');
+    const paint = () => {
+      const q = query.trim().toLowerCase();
+      const ordered = [...boxes].sort((a, b) => {
+        if (sortKey === 'risk') return (Number(b.matters) - Number(a.matters)) || (Number(a.evidence) - Number(b.evidence)) || String(a.id).localeCompare(String(b.id));
+        const av = a[sortKey], bv = b[sortKey];
+        const n = (sortKey === 'matters' || sortKey === 'evidence') ? Number(av) - Number(bv) : String(av).localeCompare(String(bv));
+        return n * sortDir;
+      });
+      body.replaceChildren();
+      let shown = 0;
+      for (const b of ordered) {
+        const inFilter = filter === 'all' || (filter.startsWith('cv:') && b.canvas === filter.slice(3)) || (filter.startsWith('blk:') && b.kind === filter.slice(4));
+        const inQuery = !q || [b.id, b.text, b.tag, b.note, b.source, b.block].some((v) => String(v || '').toLowerCase().includes(q));
+        const on = inFilter && inQuery;
+        if (on) shown++;
+        const pick = () => { selBox = selBox === b.id ? null : b.id; renderAll(); };
+        const tr = h('tr', { class: selBox === b.id ? 'sel' : '', hidden: on ? null : '', tabindex: on ? '0' : null,
+            onclick: pick, onkeydown: (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(); } } },
+          h('td', { class: 'c-id' }, h('span', { class: 'cx-id' }, b.id)),
+          h('td', { class: 'c-txt' }, h('span', { class: 'cx-clip' }, b.text)),
+          h('td', { class: 'c-m' }, dots(b.matters)),
+          h('td', { class: 'c-e' }, dots(b.evidence, Number(b.evidence) === 0)),
+          h('td', { class: 'c-tag' }, h('span', { class: 'cx-tag tg-' + b.tag }, b.tag)));
+        body.append(tr);
+      }
+      $('row-count').textContent = shown === boxes.length ? `All ${boxes.length} rows.` : `${shown} of ${boxes.length} rows.`;
+    };
+    paint();
+
+    // the chosen row, read in full: everything the table leaves out
+    const det = $('box-detail'); det.replaceChildren();
+    const b = boxes.find((x) => x.id === selBox);
+    if (!b) { det.append(h('p', { class: 'cx-cap' }, 'Tap a row, a box on the map or a block above to read it in full.')); return; }
+    const kindName = b.block || BOXKIND[b.kind] || b.kind;
+    det.append(h('div', { class: 'cx-card' },
+      h('div', { class: 'cx-ob' }, idChip(b.id), h('span', { class: 'cx-cap' }, `${b.canvas} · ${kindName} · ${b.side === 'customer' ? 'customer side' : 'your side'}${b.theme ? ' · ' + b.theme : ''}`)),
+      h('h3', {}, b.text),
+      h('div', { class: 'cx-ob' }, h('span', { class: 'cx-tag tg-' + b.tag }, b.tag), h('span', { class: 'cx-cap' }, b.tag_note || '')),
+      h('div', { class: 'cx-facts cx-sep' },
+        fact('How much it matters', `${b.matters} — ${MATTERS[Number(b.matters)] || ''}`),
+        fact('How much we know', `${b.evidence} — ${EVIDENCE[Number(b.evidence)] || ''}`),
+        b.note ? fact('Note', h('span', { class: 'cx-note' }, inline(b.note))) : null,
+        b.source ? fact('Where it came from', h('span', { class: 'cx-note' }, inline(b.source))) : null,
+        tested[b.id] ? fact('Experiments on it', tested[b.id].map((e) => h('span', { class: 'cx-ob' }, idChip(e.id), h('span', {}, e.title, ' ', pillSt(e.status)))))
+          : fact('Experiments on it', h('span', { class: 'cx-muted' }, 'none yet')))));
+  }
+
+  // ---------- Log ----------
+  function renderSince(events) {
+    const feed = $('feed'); feed.replaceChildren();
+    const now = new Date(); const dows = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const back = (dows.indexOf(now.toLocaleDateString('en-US', { weekday: 'short', timeZone: TZ })) - dows.indexOf(KIT.week_starts || 'Mon') + 7) % 7;
+    const ls = new Date(now); ls.setDate(now.getDate() - back);
+    const cut = `${ls.getFullYear()}-${String(ls.getMonth() + 1).padStart(2, '0')}-${String(ls.getDate()).padStart(2, '0')}`;
+    const sorted = [...events].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    tabCount('since', String(sorted.filter((e) => e.date >= cut).length || ''));
+    if (!sorted.length) { feed.append(h('p', { class: 'cx-muted' }, 'Nothing recorded yet.')); return; }
+    // one block a day, so a day with three entries reads as one day and not as three rows
+    feed.append(h('div', { class: 'cx-week' }, 'This week, since ' + ({ Sun: 'Sunday', Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday' }[KIT.week_starts] || 'Monday')));
+    if (!sorted.some((ev) => ev.date >= cut)) feed.append(h('p', { class: 'cx-cap' }, 'Nothing this week.'));
+    let divider = false, day = null, ul = null;
+    for (const ev of sorted) {
+      if (!divider && ev.date < cut) { feed.append(h('div', { class: 'cx-week' }, 'Earlier')); divider = true; day = null; }
+      if (ev.date !== day) { day = ev.date; ul = h('ul'); feed.append(h('div', { class: 'cx-day' }, h('span', { class: 'cx-dt' }, fmtDate(ev.date)), ul)); }
+      ul.append(h('li', {}, ev.exp ? idChip(ev.exp) : h('span', { class: 'cx-id', style: 'visibility:hidden' }, '—'), h('span', {}, ev.what)));
+    }
+  }
+
+  // ---------- draw ----------
+  // The Model tab redraws on its own when the reader sorts, searches, narrows or picks a row.
+  let last = {};
+  function renderAll() {
+    const { ex, cv, cm } = last;
+    if (!cv || cv.status !== 'ok') return;
+    renderNext(cv.data, (cm && cm.status === 'ok' && cm.data) || [], ex && ex.status === 'ok' ? ex.data : []);
+  }
+  dash.onData(() => {
+    const ex = dash.data('experiments');
+    if (ex.status === 'ok') { renderState(ex.data); renderWaiting(ex.data); renderRunning(ex.data); renderLast(ex.data); renderTimeline(ex.data); renderBoard(ex.data); }
+    else if (ex.status === 'error' || ex.status === 'connect') { fail($('waiting')); fail($('running-list')); fail($('last-card')); fail($('tl')); fail($('board-list')); }
+
+    const cv = dash.data('canvas'), cm = dash.data('canvas-meta');
+    last = { ex, cv, cm };
+    if (cv.status === 'ok') renderNext(cv.data, (cm.status === 'ok' && cm.data) || [], ex.status === 'ok' ? ex.data : []);
+    else if (cv.status === 'error' || cv.status === 'connect') { fail($('map')); fail($('riskiest')); fail($('box-detail')); $('row-count').textContent = ''; }
+
+    const evs = dash.data('events');
+    if (evs.status === 'ok') renderSince(evs.data); else if (evs.status === 'error' || evs.status === 'connect') fail($('feed'));
+
+    // open the tab or section a link names, once, after the first draw
+    if (!rose) {
+      rose = true;
+      const name = location.hash.slice(1);
+      if (name) {
+        const onTab = TABS.find(([t]) => t === name);
+        if (onTab) show(name);
+        else { const el = $(name); if (el) { const panel = el.closest('.cx-panel'); if (panel) show(panel.id); el.scrollIntoView(); } }
+      }
+    }
+  });
+
+  $('title').textContent = (KIT.business || 'My business') + ' experiments';
+  if (KIT.repo_url) $('repo').setAttribute('href', KIT.repo_url); else $('repo').removeAttribute('href');
+  buildTabs();
+  show(tab);
+})();
+</script>

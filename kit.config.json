@@ -1,0 +1,9 @@
+{
+  "business": "Bean Box (example)",
+  "timezone": "UTC",
+  "utc_offset": "+00:00",
+  "weekend": ["Sat", "Sun"],
+  "week_starts": "Mon",
+  "repo_url": "",
+  "dashboard_url": ""
+}
