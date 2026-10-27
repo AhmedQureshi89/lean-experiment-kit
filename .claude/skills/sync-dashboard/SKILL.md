@@ -29,7 +29,10 @@ that file and run it again. Nothing is pushed until the build is clean. The seco
 1. `Artifact` publish with `type_url: "https://claude.ai/artifact/GZLZthZ2sQjn7T16skfdeF"` (the
    Dashboard type), `title` = `"<business> experiments"` from `kit.config.json`, `auto_open:
    "after_first_write"`, and nothing else. The result carries the new dashboard's `url` and the
-   type's own instructions: follow those for anything this skill does not say.
+   type's own instructions: follow those for anything this skill does not say. Artifact types are
+   set per account, so if that link is refused, run `Artifact` `action: "quickstart"` with `intent:
+   "other"` and use the Dashboard type it names; if none is offered, tell the founder the account
+   has no Dashboard type and stop.
 2. Write that `url` into `kit.config.json` as `dashboard_url` straight away, so a failure below
    does not create a second dashboard next time.
 3. Upload the four data files: `Artifact` with that `url`, `asset: true`, `file_path` = each JSON

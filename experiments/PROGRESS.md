@@ -2,7 +2,7 @@
 
 The single source of truth. Check here before starting anything new.
 
-> **Generated** by `dashboard/build_data.py` on 2026-10-27 19:22 from the header at the top of each
+> **Generated** by `dashboard/build_data.py` on 2026-10-27 22:31 from the header at the top of each
 > experiment's `test-card.md`. **Edit the card, not this file.** Corrections to the board are recorded in
 > `BOARD-HISTORY.md`; the canvases are `canvas/VP-A.md` and `canvas/LC-A.md`; the method library is `METHODS.md`.
 
