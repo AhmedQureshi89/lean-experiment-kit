@@ -126,6 +126,10 @@ only**, so every card names its method the same way. What each method is, when t
 to trust its result are in the book, and you should read it there. This project is not affiliated
 with or endorsed by the authors, Wiley or Strategyzer.
 
+## Updates
+
+What changed and when: **[CHANGELOG.md](CHANGELOG.md)**.
+
 ## License
 
 MIT. See `LICENSE`.
