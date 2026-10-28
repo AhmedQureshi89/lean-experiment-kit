@@ -113,6 +113,12 @@ Everything is plain Markdown and YAML in git. The dashboard is a view of the rep
 record. A running card can also name a live query (`live_dataset`), which the dashboard runs on every
 open. See `.claude/skills/pull-evidence/SKILL.md`.
 
+## Running a job in the cloud
+
+When a test needs a small job to run every hour whether or not your laptop is awake, Claude Managed
+Agents can run it for you. A one-page story of moving a job there, with the four traps to avoid:
+**[docs/managed-agents-story.md](docs/managed-agents-story.md)**.
+
 ## The method list
 
 `experiments/METHODS.md` lists the 44 methods of *Testing Business Ideas* by **number and name
