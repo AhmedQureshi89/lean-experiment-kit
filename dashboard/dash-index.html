@@ -16,6 +16,8 @@
 .cx .cx-note { font-size: var(--cds-font-size-caption); line-height: 1.55; }
 .cx .cx-prose { font-size: var(--cds-font-size-body); line-height: 1.6; max-width: 62ch; }
 .cx .cx-muted { color: var(--color-fg-muted); }
+.cx .cx-steps { margin: 0; padding-left: 1.3em; display: grid; gap: .4em; font-size: var(--cds-font-size-body); line-height: 1.5; }
+.cx .cx-start code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; }
 .cx .cx-num { font-family: var(--font-anthropic-serif); font-weight: 400; line-height: 1; }
 .cx .cx-num-xl { font-size: calc(var(--cds-font-size-title) * 1.9); }
 .cx .cx-num-lg { font-size: calc(var(--cds-font-size-title) * 1.25); }
@@ -244,6 +246,10 @@
 
   <!-- ============ TODAY ============ -->
   <div class="cx-panel" id="now" role="tabpanel" aria-labelledby="tab-now">
+    <section id="start" hidden>
+      <div class="cx-card cx-start" id="start-card" data-source="experiments"></div>
+    </section>
+
     <section id="attention">
       <div class="cx-shead"><h2>What needs you</h2><p class="cx-cap">Anything here is yours to decide or do. Nothing else on this page is.</p></div>
       <div id="waiting" data-source="experiments"></div>
@@ -427,6 +433,32 @@
   function tabCount(id, text) { const el = $('tabn-' + id); if (el) el.textContent = text || ''; }
 
   // ---------- Today ----------
+  // Getting started: shown while the kit still holds the example business, or once it is set up but has
+  // no experiment yet. It says what to type in Claude Code; nothing on this page can change the repo.
+  const IS_EXAMPLE = /\(example\)\s*$/i.test(KIT.business || '');
+  function renderStart(exps) {
+    const sec = $('start'), card = $('start-card'); card.replaceChildren();
+    sec.hidden = !(IS_EXAMPLE || !exps.length);
+    if (sec.hidden) return;
+    const say = (cmd, what) => h('li', {}, h('code', {}, cmd), ' ', h('span', { class: 'cx-muted' }, what));
+    if (IS_EXAMPLE) {
+      card.append(h('div', { class: 'cx-eyebrow' }, 'Getting started'),
+        h('h2', {}, 'This is the example business'),
+        h('p', { class: 'cx-prose' }, 'Everything on this page is Bean Box, a made-up coffee subscription, so you can see a working loop before you start your own.'),
+        h('ol', { class: 'cx-steps' },
+          say('/tour', 'in Claude Code: a five-minute walk through this example, one piece at a time.'),
+          say('/get-started', 'in Claude Code: answer a few questions about your business. Claude writes your canvases, removes the example and suggests your first test.')));
+      return;
+    }
+    card.append(h('div', { class: 'cx-eyebrow' }, 'Getting started'),
+      h('h2', {}, 'No experiments yet'),
+      h('p', { class: 'cx-prose' }, 'Your canvases are in. The box to test first is at the top of the Model tab: the one everything rests on that you know least about.'),
+      h('ol', { class: 'cx-steps' },
+        say('"test the idea that …"', 'Claude writes the test card: the cheapest believable test, the bar it must clear, and how to measure it.'),
+        say('"pull the numbers for 0001"', 'while it runs: today’s count against the bar.'),
+        say('"log 0001"', 'once the window closes: what you learned, and your call to persevere, pivot or kill.')));
+  }
+
   function renderState(exps) {
     const running = exps.filter((e) => e.status === 'running');
     const waiting = waitingOn(exps);
@@ -851,7 +883,7 @@
   }
   dash.onData(() => {
     const ex = dash.data('experiments');
-    if (ex.status === 'ok') { renderState(ex.data); renderWaiting(ex.data); renderRunning(ex.data); renderLast(ex.data); renderTimeline(ex.data); renderBoard(ex.data); }
+    if (ex.status === 'ok') { renderStart(ex.data); renderState(ex.data); renderWaiting(ex.data); renderRunning(ex.data); renderLast(ex.data); renderTimeline(ex.data); renderBoard(ex.data); }
     else if (ex.status === 'error' || ex.status === 'connect') { fail($('waiting')); fail($('running-list')); fail($('last-card')); fail($('tl')); fail($('board-list')); }
 
     const cv = dash.data('canvas'), cm = dash.data('canvas-meta');

@@ -13,8 +13,9 @@ riskiest_why: Every other block rests on people paying a monthly price. No one h
 
 # LC-A · Bean Box Lean Canvas (example)
 
-> **This is a made-up example business.** Replace every row with your own. Keep the header fields,
-> the table columns and the "Read by theme" table: the dashboard reads them.
+> **This is a made-up example business.** Type `/get-started` in Claude Code and it is replaced with your
+> own, from your answers. To edit by hand instead, keep the header fields, the table columns and the
+> "Read by theme" table: the dashboard reads them.
 
 > **How this file works**
 > - The header above is read by the dashboard. The table below is the canvas: one row per hypothesis, grouped by block.

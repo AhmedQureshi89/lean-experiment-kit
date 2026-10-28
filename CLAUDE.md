@@ -8,6 +8,14 @@ Settings live in `kit.config.json`: the business name, time zone (`timezone`, an
 `Europe/London`, and `utc_offset`, such as `+01:00`), the weekend days, the day the week starts, the
 GitHub link and the dashboard link. Use the configured offset in every date the cards hold.
 
+## First run
+If `kit.config.json`'s `business` ends with `(example)`, the kit has not been set up yet and
+everything in it is the made-up Bean Box example. On the founder's first message, whatever it says,
+tell them so in one line and offer two starts: `/tour` (see how the loop works on the example, about
+five minutes) or `/get-started` (answer a few questions; Claude sets up their own business, about fifteen
+minutes). Do not run `/new-experiment`, `/pull-evidence` or `/log-experiment` on the example
+business unless they ask to try one on it.
+
 ## The loop (repeats every time)
 1. **Hypothesize**: state a belief as "We believe that…"
 2. **Experiment**: design and run the cheapest test that gives real evidence
@@ -35,6 +43,7 @@ dashboard/               ← build_data.py (cards → board and bundle), build_d
                             dashboard's data files), dash-index.html (the dashboard page), check_sync.py
                             (the Stop hook) and mark_synced.py
 .claude/skills/          ← the procedures below, one slash command each
+docs/WALKTHROUGH.md      ← one experiment from idea to decision, for a founder reading on GitHub
 ```
 
 ## The card header is the record
@@ -51,6 +60,8 @@ in the cards, a box's tag and scores in its canvas table.
 ## Procedures (slash commands: follow the skill, do not re-derive the steps)
 | When the founder says | Run | What it does |
 |---|---|---|
+| "set me up" / a fresh copy | `/get-started` | the first run: questions about the business, config, segments and both canvases written, the example removed, the dashboard created, one first test proposed |
+| "show me how this works" | `/tour` | six stops through a working loop: the example until set up, then the founder's own files |
 | "test the idea that X" | `/new-experiment` | next number, folder, test card, canvas link, sync |
 | "pull the numbers" / an experiment is Running | `/pull-evidence NNNN` | reads the sources the card names → a dated entry in the daily evidence log, compared with the bar |
 | "log NNNN" / shares a result | `/log-experiment NNNN` | learning card, header done + decision, canvas box, one next hypothesis, sync |
